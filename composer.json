@@ -1,0 +1,19 @@
+{
+  "name": "garrettbuilds/wp-comments-off",
+  "description": "One-file WordPress must-use plugin that closes comments, trackbacks and pingbacks on every post type. WooCommerce reviews, block editor Notes and XML-RPC keep working.",
+  "type": "wordpress-muplugin",
+  "license": "GPL-2.0-or-later",
+  "keywords": ["wordpress", "mu-plugin", "comments", "comment-spam", "trackback", "pingback", "xmlrpc", "anti-spam", "wp-cli"],
+  "homepage": "https://github.com/garrettbuilds/wp-comments-off",
+  "authors": [
+    { "name": "Garrett Nafzinger", "homepage": "https://garrettdigital.com" }
+  ],
+  "support": {
+    "issues": "https://github.com/garrettbuilds/wp-comments-off/issues",
+    "source": "https://github.com/garrettbuilds/wp-comments-off"
+  },
+  "require": {
+    "php": ">=7.4",
+    "composer/installers": "^1.0 || ^2.0"
+  }
+}

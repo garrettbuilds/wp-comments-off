@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security problem privately
+    url: https://github.com/garrettbuilds/wp-comments-off/security/advisories/new
+    about: A route bots can still use to post comments, trackbacks or pingbacks.

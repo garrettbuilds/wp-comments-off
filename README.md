@@ -1,5 +1,10 @@
 # Comments Off
 
+[![PHP checks](https://github.com/garrettbuilds/wp-comments-off/actions/workflows/php.yml/badge.svg)](https://github.com/garrettbuilds/wp-comments-off/actions/workflows/php.yml)
+[![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
+![PHP 7.4 to 8.4](https://img.shields.io/badge/PHP-7.4%20to%208.4-777bb4.svg)
+![WordPress 6.9+](https://img.shields.io/badge/WordPress-6.9%2B-21759b.svg)
+
 A one-file WordPress must-use plugin that closes comments, trackbacks and pingbacks on every
 post type, and keeps them closed. WooCommerce product reviews keep working.
 
@@ -38,9 +43,14 @@ This plugin closes them all while it runs, without changing anything in the data
   run the same on GoDaddy (shared and Managed WordPress), WP Engine, Kinsta and similar hosts.
   Hosts with their own comment lockdown setting, such as GridPane, don't need it.
 
+Tested on a live site on WP Engine (WordPress 7.1.5, PHP 8.4): every check under Test After
+Install passed. Reports from other hosts are welcome in the issues.
+
 ## Install
 
-Copy `garrettbuilds-comments-off.php` into `wp-content/mu-plugins/`. Create the `mu-plugins`
+Download `garrettbuilds-comments-off.php` from the
+[latest release](https://github.com/garrettbuilds/wp-comments-off/releases/latest) and copy it
+into `wp-content/mu-plugins/`. Create the `mu-plugins`
 folder if it isn't there; GoDaddy shared hosting often doesn't have one. There's nothing to
 activate. The plugin runs as soon as the file is in place.
 
@@ -53,6 +63,13 @@ curl -fsSL -o wp-content/mu-plugins/garrettbuilds-comments-off.php \
 ```
 
 Without shell access, upload the file with the host's file manager.
+
+With Composer and `composer/installers`, which puts it in `mu-plugins`:
+
+```sh
+composer config repositories.comments-off vcs https://github.com/garrettbuilds/wp-comments-off
+composer require garrettbuilds/wp-comments-off
+```
 
 Check it loaded: **Plugins, Must-Use** lists "Comments Off". With WP-CLI:
 
@@ -179,6 +196,35 @@ plugin's own logic; the curl tests above check it on a real site.
 
 Delete the file from `wp-content/mu-plugins/`. Every post goes back to the comment and ping
 setting stored in the database, unless `close-existing --yes` was run.
+
+## FAQ
+
+**Why do I still get spam comments when comments are disabled?**
+The "Allow people to submit comments on new posts" setting only applies to posts created after
+you change it. Older posts, pages and media pages keep their own setting, and bots post straight
+to `wp-comments-post.php`, `wp-trackback.php`, `xmlrpc.php` or the REST API without loading the
+page. This plugin closes all of those.
+
+**What's the difference between trackbacks and pingbacks?**
+Both are notices one blog sends another when it links to a post. Trackbacks are posted to
+`/trackback/` on the post; pingbacks go through XML-RPC. Spam bots use both, and very few small
+sites want either.
+
+**Does it delete my existing comments?**
+No. Approved comments stay where they are and the Comments screen still shows everything.
+
+**Will it break Jetpack, the WordPress app or my forms?**
+No. XML-RPC stays on, with only the two pingback methods removed. The REST rule only looks at
+comment writes from logged-out visitors, so form plugins, Jetpack and other API routes are
+untouched.
+
+**Do I need it on GridPane, or with the Disable Comments plugin installed?**
+No. GridPane has its own setting for this, and Disable Comments does the same job as a regular
+plugin. Use one.
+
+**Can I keep comments on one post type?**
+Yes. Add it to the allowlist with the `garrettbuilds_comments_off_allowed_post_types` filter
+(see Settings).
 
 ## Why a Must-Use Plugin
 
