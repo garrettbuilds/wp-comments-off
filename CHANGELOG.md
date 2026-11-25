@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 (2026-11-25)
+
+- Author link uses https://www. with tracking parameters. No change in behavior.
+
 ## 0.1.0 (2026-11-25)
 
 First release.

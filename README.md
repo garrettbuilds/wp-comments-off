@@ -237,4 +237,4 @@ documented.
 
 GPL-2.0-or-later. See [LICENSE](LICENSE).
 
-Built by [Garrett Nafzinger](https://garrettdigital.com) at Garrett Digital.
+Built by [Garrett Nafzinger](https://www.garrettdigital.com/?utm_source=github&utm_medium=referral&utm_campaign=wp-comments-off&utm_content=readme-credit) at Garrett Digital.

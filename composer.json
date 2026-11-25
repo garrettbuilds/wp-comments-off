@@ -6,7 +6,7 @@
   "keywords": ["wordpress", "mu-plugin", "comments", "comment-spam", "trackback", "pingback", "xmlrpc", "anti-spam", "wp-cli"],
   "homepage": "https://github.com/garrettbuilds/wp-comments-off",
   "authors": [
-    { "name": "Garrett Nafzinger", "homepage": "https://garrettdigital.com" }
+    { "name": "Garrett Nafzinger", "homepage": "https://www.garrettdigital.com/?utm_source=github&utm_medium=referral&utm_campaign=wp-comments-off&utm_content=composer-author" }
   ],
   "support": {
     "issues": "https://github.com/garrettbuilds/wp-comments-off/issues",
