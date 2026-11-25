@@ -125,15 +125,17 @@ Return an empty array to close comments everywhere, products included.
 
 ## Test After Install
 
-Replace `example.com` and `123` with the site and a published post ID.
+Replace `example.com`, `123` and `/a-post/` with the site, a published post ID and that post's
+path.
 
 ```sh
 # Comment form: expect HTTP 403
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://example.com/wp-comments-post.php \
   -d 'comment_post_ID=123&author=Test&email=test@example.com&comment=test'
 
-# Trackback: expect <error>1</error>
-curl -s -X POST 'https://example.com/wp-trackback.php?p=123' \
+# Trackback to the post's trackback address: expect
+# <error>1</error> and "Sorry, trackbacks are closed for this item."
+curl -s -X POST 'https://example.com/a-post/trackback/' \
   -d 'url=https://example.org/&title=test&blog_name=test&excerpt=test'
 
 # Pingback over XML-RPC: expect a fault (method not found)
