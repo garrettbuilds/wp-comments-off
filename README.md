@@ -2,7 +2,7 @@
 
 [![PHP checks](https://github.com/garrettbuilds/wp-comments-off/actions/workflows/php.yml/badge.svg)](https://github.com/garrettbuilds/wp-comments-off/actions/workflows/php.yml)
 [![License: GPL v2+](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
-![PHP 7.4 to 8.4](https://img.shields.io/badge/PHP-7.4%20to%208.4-777bb4.svg)
+![PHP 7.4 to 8.5](https://img.shields.io/badge/PHP-7.4%20to%208.5-777bb4.svg)
 ![WordPress 6.9+](https://img.shields.io/badge/WordPress-6.9%2B-21759b.svg)
 
 A one-file WordPress must-use plugin that closes comments, trackbacks and pingbacks on every
@@ -30,10 +30,48 @@ This plugin closes them all while it runs, without changing anything in the data
 - **XML-RPC.** Only the two pingback methods are removed. Jetpack and the WordPress mobile apps
   keep working.
 - **Block editor Notes.** Notes are stored as comments, but they come from logged-in editors and
-  WordPress doesn't check `comments_open()` for them.
-- **WooCommerce product reviews.** The `product` post type keeps its own comment setting.
-- **Existing comments.** Nothing is deleted or hidden. The Comments screen still shows everything.
-- **The admin.** No menus are hidden and no settings screen is added.
+  WordPress doesn't check `comments_open()` for them. Whether a post type has Notes depends on its
+  editor support, not its comment support, so the admin changes below don't affect them.
+- **WooCommerce product reviews.** The `product` post type keeps its own comment setting and its
+  comment controls.
+- **Existing comments.** Nothing is deleted. Themes still show approved comments on the front
+  end, and the Comments screen still lists everything.
+
+## What Changes in the Admin
+
+The plugin removes the controls that can't reopen comments, and explains itself on the screens
+that stay, so nobody turns comments on and wonders why nothing happens.
+
+| Where | What you see |
+|---|---|
+| Admin bar | No comments bubble. On sites with an allowlisted post type (WooCommerce installed), the bubble stays, because it shows pending product reviews |
+| Post editor (block and classic) | No Discussion panel on post types where comments are closed |
+| Posts list, Quick Edit and Bulk Edit | No "Allow Comments" or "Allow Pings" controls and no Comments column on those post types |
+| Settings, Discussion | Still there, with a notice at the top: comments are off site-wide, which post types still follow these settings, and how to turn comments back on |
+| Comments screen | Still there, with the same notice. It lists existing comments and product reviews |
+
+Only administrators see the notice. On multisite it says "network-wide", and only network
+administrators see the file and `wp-config.php` steps; site administrators are told to ask their
+network administrator. The Comments menu and the Discussion settings stay because product reviews,
+avatars and comment moderation still use them.
+
+None of this changes the front end. Themes that check whether a post type supports comments
+still get the normal answer, including on "load more" and filter requests that run through
+`admin-ajax.php`, so existing approved comments keep showing.
+
+## Turning Comments Back On
+
+Comments are controlled by this plugin's file, not by any setting in WordPress. To turn them back
+on, do one of these:
+
+- Delete `wp-content/mu-plugins/garrettbuilds-comments-off.php`.
+- Add `define( 'GARRETTBUILDS_COMMENTS_OFF_DISABLE', true );` to `wp-config.php`, which keeps the
+  file but switches it off.
+- Keep it on, and allow comments on one post type with the allowlist filter (see Settings).
+
+Then check Settings, Discussion and each post's own comment setting, since those take over again.
+If `wp comments-off close-existing --yes` was ever run, posts were closed in the database too and
+need reopening with Bulk Edit.
 
 ## Requirements
 
@@ -179,6 +217,13 @@ Then, logged in, check that these still work:
 If a host's page cache answers one of the POST tests with a cached page, the cache answered
 before WordPress did. Test again with a query string such as `?nocache=1` added to the URL.
 
+Also check the admin (needs a browser, logged in as an administrator):
+
+- The admin bar has no comments bubble (or has one, on WooCommerce sites).
+- Editing a post or page shows no Discussion panel; a block Note can still be added and saved.
+- Quick Edit on a page saves and the row redraws with the same columns.
+- Settings, Discussion and the Comments screen show the notice.
+
 ## Development
 
 `tests/smoke.php` loads the plugin with small stand-ins for WordPress functions and checks
@@ -189,8 +234,11 @@ php -l garrettbuilds-comments-off.php
 php tests/smoke.php
 ```
 
-GitHub Actions runs both on PHP 7.4, 8.0, 8.2 and 8.4 for every push. The smoke test checks the
+GitHub Actions runs both on PHP 7.4, 8.0, 8.2, 8.4 and 8.5 for every push. The smoke test checks the
 plugin's own logic; the curl tests above check it on a real site.
+
+Why each hook is there, what WordPress core does on each path, and what was considered and left
+out: [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Remove
 

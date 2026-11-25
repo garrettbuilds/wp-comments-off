@@ -12,7 +12,7 @@ php tests/smoke.php
 ```
 
 Add a check to `tests/smoke.php` for any new behavior, and a line to `CHANGELOG.md`. GitHub
-Actions runs both commands on PHP 7.4, 8.0, 8.2 and 8.4.
+Actions runs both commands on PHP 7.4, 8.0, 8.2, 8.4 and 8.5.
 
 ## Reporting a Bug
 

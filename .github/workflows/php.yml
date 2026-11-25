@@ -4,13 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    # Monthly, so a new PHP release or a retired action shows up without a code change.
+    - cron: '17 9 1 * *'
+  workflow_dispatch:
 
 jobs:
   lint-and-smoke:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['7.4', '8.0', '8.2', '8.4']
+        php: ['7.4', '8.0', '8.2', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2

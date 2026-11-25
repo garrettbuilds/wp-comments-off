@@ -3,7 +3,7 @@
  * Plugin Name:       Comments Off
  * Plugin URI:        https://github.com/garrettbuilds/wp-comments-off
  * Description:       Closes comments, trackbacks and pingbacks on every post type except an allowlist (WooCommerce products by default). Core hooks only, no settings, no database writes.
- * Version:           0.1.2
+ * Version:           0.2.0
  * Requires at least: 6.9
  * Requires PHP:      7.4
  * Author:            Garrett Nafzinger
@@ -30,7 +30,7 @@ if ( defined( 'GARRETTBUILDS_COMMENTS_OFF_DISABLE' ) && GARRETTBUILDS_COMMENTS_O
 if ( defined( 'GARRETTBUILDS_COMMENTS_OFF_LOADED' ) ) {
 	return;
 }
-define( 'GARRETTBUILDS_COMMENTS_OFF_LOADED', '0.1.2' );
+define( 'GARRETTBUILDS_COMMENTS_OFF_LOADED', '0.2.0' );
 
 // Late enough that a theme or plugin filtering at the default priority cannot reopen comments.
 const PRIORITY = 99;
@@ -179,6 +179,132 @@ function filter_rest_dispatch( $result, $server, $request ) {
 	);
 }
 add_filter( 'rest_pre_dispatch', __NAMESPACE__ . '\\filter_rest_dispatch', PRIORITY, 3 );
+
+/*
+ * Admin screens. Remove controls that can't reopen comments, and say where comments are
+ * controlled on the screens that stay. The front end is untouched, so themes still show any
+ * existing approved comments.
+ */
+
+/**
+ * Drop the comments bubble from the admin bar, unless an allowlisted post type exists (for
+ * example WooCommerce products), since the bubble shows pending reviews. Core adds it at 60.
+ *
+ * @param \WP_Admin_Bar $bar
+ */
+function filter_admin_bar( $bar ) {
+	if ( ! is_object( $bar ) || ! method_exists( $bar, 'remove_node' ) ) {
+		return;
+	}
+	foreach ( allowed_post_types() as $type ) {
+		if ( post_type_exists( $type ) ) {
+			return;
+		}
+	}
+	$bar->remove_node( 'comments' );
+}
+add_action( 'admin_bar_menu', __NAMESPACE__ . '\\filter_admin_bar', PRIORITY );
+
+/**
+ * Classic editor, Quick Edit and Bulk Edit: remove the Discussion controls on closed post
+ * types. Admin screens only, so front-end templates that check post type support still work.
+ * admin-ajax.php counts as admin even for front-end requests (load more, filters), so AJAX is
+ * skipped except Quick Edit's save, which redraws a list row and must match its columns.
+ */
+function remove_admin_comment_support() {
+	if ( ! is_admin() ) {
+		return;
+	}
+	if ( wp_doing_ajax() ) {
+		// Read-only comparison against a fixed action name; nothing is saved here.
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( 'inline-save' !== $action ) {
+			return;
+		}
+	}
+	$allowed = allowed_post_types();
+	foreach ( get_post_types() as $type ) {
+		if ( in_array( $type, $allowed, true ) ) {
+			continue;
+		}
+		remove_post_type_support( $type, 'comments' );
+		remove_post_type_support( $type, 'trackbacks' );
+	}
+}
+add_action( 'wp_loaded', __NAMESPACE__ . '\\remove_admin_comment_support', PRIORITY );
+
+/**
+ * Block editor: it reads post type support from the REST API, so hide the Discussion panel
+ * there. Notes depend on editor support, not comment support, and keep working.
+ *
+ * @param \WP_REST_Response $response
+ * @param \WP_Post_Type     $post_type
+ * @return \WP_REST_Response
+ */
+function filter_rest_post_type( $response, $post_type ) {
+	if ( ! $response instanceof \WP_REST_Response || ! is_object( $post_type ) || ! isset( $post_type->name ) ) {
+		return $response;
+	}
+	if ( in_array( $post_type->name, allowed_post_types(), true ) ) {
+		return $response;
+	}
+	$data = $response->get_data();
+	if ( isset( $data['supports'] ) && is_array( $data['supports'] ) ) {
+		unset( $data['supports']['comments'], $data['supports']['trackbacks'] );
+		$response->set_data( $data );
+	}
+	return $response;
+}
+add_filter( 'rest_prepare_post_type', __NAMESPACE__ . '\\filter_rest_post_type', PRIORITY, 2 );
+
+/**
+ * Where this file is, relative to the WordPress root, for the admin notice.
+ */
+function file_label() {
+	$file = wp_normalize_path( __FILE__ );
+	$root = wp_normalize_path( ABSPATH );
+	if ( 0 === strpos( $file, $root ) ) {
+		return substr( $file, strlen( $root ) );
+	}
+	return basename( $file );
+}
+
+/**
+ * On Settings > Discussion and the Comments screen, tell admins why the settings there
+ * don't reopen comments, and how to change that.
+ */
+function admin_notice() {
+	if ( ! current_user_can( 'manage_options' ) || ! function_exists( 'get_current_screen' ) ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || ! in_array( $screen->id, array( 'options-discussion', 'edit-comments' ), true ) ) {
+		return;
+	}
+
+	$scope   = is_multisite() ? 'network-wide' : 'site-wide';
+	$allowed = allowed_post_types();
+	$except  = $allowed ? ' Comments still follow these settings on: ' . implode( ', ', $allowed ) . '.' : '';
+
+	if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
+		$how = 'To turn comments back on, ask your network administrator.';
+	} else {
+		$how = sprintf(
+			'To turn comments back on, delete <code>%1$s</code>, or add <code>%2$s</code> to <code>wp-config.php</code>.',
+			esc_html( file_label() ),
+			esc_html( "define( 'GARRETTBUILDS_COMMENTS_OFF_DISABLE', true );" )
+		);
+	}
+
+	printf(
+		'<div class="notice notice-info"><p><strong>Comments, trackbacks and pingbacks are turned off %1$s by the Comments Off must-use plugin.</strong> Settings on this page and on each post don\'t reopen them.%2$s</p><p>%3$s <a href="%4$s">How it works</a></p></div>',
+		esc_html( $scope ),
+		esc_html( $except ),
+		$how, // Built above from escaped parts.
+		esc_url( 'https://github.com/garrettbuilds/wp-comments-off#readme' )
+	);
+}
+add_action( 'admin_notices', __NAMESPACE__ . '\\admin_notice' );
 
 /*
  * WP-CLI commands. Web requests never write to the database; only `close-existing --yes`
