@@ -3,11 +3,11 @@
  * Plugin Name:       Comments Off
  * Plugin URI:        https://github.com/garrettbuilds/wp-comments-off
  * Description:       Closes comments, trackbacks and pingbacks on every post type except an allowlist (WooCommerce products by default). Core hooks only, no settings, no database writes.
- * Version:           0.1.1
+ * Version:           0.1.2
  * Requires at least: 6.9
  * Requires PHP:      7.4
  * Author:            Garrett Nafzinger
- * Author URI:        https://www.garrettdigital.com/?utm_source=github&utm_medium=referral&utm_campaign=wp-comments-off&utm_content=plugin-author-uri
+ * Author URI:        https://www.garrettdigital.com/
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  *
@@ -30,7 +30,7 @@ if ( defined( 'GARRETTBUILDS_COMMENTS_OFF_DISABLE' ) && GARRETTBUILDS_COMMENTS_O
 if ( defined( 'GARRETTBUILDS_COMMENTS_OFF_LOADED' ) ) {
 	return;
 }
-define( 'GARRETTBUILDS_COMMENTS_OFF_LOADED', '0.1.1' );
+define( 'GARRETTBUILDS_COMMENTS_OFF_LOADED', '0.1.2' );
 
 // Late enough that a theme or plugin filtering at the default priority cannot reopen comments.
 const PRIORITY = 99;

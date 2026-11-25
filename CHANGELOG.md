@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (2026-11-25)
+
+- Author URI in the plugin header is a plain https://www. link, without tracking parameters. No change in behavior.
+
 ## 0.1.1 (2026-11-25)
 
 - Author link uses https://www. with tracking parameters. No change in behavior.
