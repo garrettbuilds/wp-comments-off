@@ -3,7 +3,7 @@
  * Plugin Name:       Comments Off
  * Plugin URI:        https://github.com/garrettbuilds/wp-comments-off
  * Description:       Closes comments, trackbacks and pingbacks on every post type except an allowlist (WooCommerce products by default). Core hooks only, no settings, no database writes.
- * Version:           0.2.0
+ * Version:           0.2.1
  * Requires at least: 6.9
  * Requires PHP:      7.4
  * Author:            Garrett Nafzinger
@@ -30,7 +30,7 @@ if ( defined( 'GARRETTBUILDS_COMMENTS_OFF_DISABLE' ) && GARRETTBUILDS_COMMENTS_O
 if ( defined( 'GARRETTBUILDS_COMMENTS_OFF_LOADED' ) ) {
 	return;
 }
-define( 'GARRETTBUILDS_COMMENTS_OFF_LOADED', '0.2.0' );
+define( 'GARRETTBUILDS_COMMENTS_OFF_LOADED', '0.2.1' );
 
 // Late enough that a theme or plugin filtering at the default priority cannot reopen comments.
 const PRIORITY = 99;
@@ -283,8 +283,15 @@ function admin_notice() {
 	}
 
 	$scope   = is_multisite() ? 'network-wide' : 'site-wide';
-	$allowed = allowed_post_types();
-	$except  = $allowed ? ' Comments still follow these settings on: ' . implode( ', ', $allowed ) . '.' : '';
+	// Name only allowlisted post types this site has, by their label (for example "Products").
+	$names = array();
+	foreach ( allowed_post_types() as $type ) {
+		$object = get_post_type_object( $type );
+		if ( $object && isset( $object->labels->name ) ) {
+			$names[] = $object->labels->name;
+		}
+	}
+	$except = $names ? ' Comments still follow these settings on: ' . implode( ', ', $names ) . '.' : '';
 
 	if ( is_multisite() && ! current_user_can( 'manage_network_options' ) ) {
 		$how = 'To turn comments back on, ask your network administrator.';

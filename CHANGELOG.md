@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 (2026-11-25)
+
+- Admin notice names only allowlisted post types the site has, by their label (for example
+  "Products"). Sites without WooCommerce no longer see "product" listed.
+
 ## 0.2.0 (2026-11-25)
 
 Admin changes, so nobody turns comments on and wonders why nothing happens. The front end is

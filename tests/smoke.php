@@ -24,6 +24,7 @@ function wp_doing_ajax() { return $GLOBALS['ajax']; }
 function sanitize_key( $k ) { return strtolower( preg_replace( '/[^a-z0-9_\\-]/i', '', $k ) ); }
 function wp_unslash( $v ) { return $v; }
 $GLOBALS['registered'] = array( 'post', 'page', 'product' );
+function get_post_type_object( $t ) { return in_array( $t, $GLOBALS['registered'], true ) ? (object) array( 'labels' => (object) array( 'name' => ucfirst( $t ) . 's' ) ) : null; }
 function post_type_exists( $t ) { return in_array( $t, $GLOBALS['registered'], true ); }
 function is_admin() { return $GLOBALS['is_admin']; }
 class WP_REST_Response { private $d; function __construct( $d ) { $this->d = $d; } function get_data() { return $this->d; } function set_data( $d ) { $this->d = $d; } }
@@ -71,6 +72,7 @@ $bar = new FakeBar(); filter_admin_bar( $bar );
 check( 'admin bar bubble kept when products exist', array() === $bar->removed );
 $GLOBALS['registered'] = array( 'post', 'page' ); $bar = new FakeBar(); filter_admin_bar( $bar );
 check( 'admin bar bubble removed without WooCommerce', array( 'comments' ) === $bar->removed );
+$GLOBALS['registered'] = array( 'post', 'page', 'product' );
 remove_admin_comment_support();
 check( 'admin: post and page lose comment UI, product keeps it', array( 'post:comments', 'post:trackbacks', 'page:comments', 'page:trackbacks' ) === $GLOBALS['removed'] );
 $GLOBALS['removed'] = array(); $GLOBALS['is_admin'] = false; remove_admin_comment_support();
@@ -91,7 +93,10 @@ check( 'rest_prepare_post_type tolerates odd input', 'x' === filter_rest_post_ty
 $notice = function () { ob_start(); admin_notice(); return ob_get_clean(); };
 $out = $notice();
 check( 'notice on Discussion settings names the file and constant', false !== strpos( $out, 'garrettbuilds-comments-off.php' ) && false !== strpos( $out, 'GARRETTBUILDS_COMMENTS_OFF_DISABLE' ) && false !== strpos( $out, 'site-wide' ) );
-check( 'notice lists allowlisted types', false !== strpos( $out, 'on: product.' ) );
+check( 'notice names allowlisted types that exist, by label', false !== strpos( $out, 'on: Products.' ) );
+$GLOBALS['registered'] = array( 'post', 'page' ); $out = $notice();
+check( 'notice skips allowlisted types the site lacks', false === strpos( $out, 'still follow' ) );
+$GLOBALS['registered'] = array( 'post', 'page', 'product' );
 $GLOBALS['multisite'] = true; $GLOBALS['caps']['manage_network_options'] = false; $out = $notice();
 check( 'multisite subsite admin: told to ask the network admin', false !== strpos( $out, 'ask your network administrator' ) && false === strpos( $out, 'wp-config.php' ) && false !== strpos( $out, 'network-wide' ) );
 $GLOBALS['multisite'] = false; $GLOBALS['caps']['manage_network_options'] = true;
